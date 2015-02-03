@@ -1,5 +1,5 @@
 angular.module('gridshore.c3js.chart', [])
-.controller('ChartController',['$scope', function($scope) {
+.controller('ChartController',['$scope', '$timeout', function($scope, $timeout) {
 	$scope.chart = null;
 	$scope.columns = [];
 	$scope.types = {};
@@ -15,9 +15,10 @@ angular.module('gridshore.c3js.chart', [])
 	$scope.chartSize = null;
 	$scope.colors = null;
 	$scope.jsonKeys = null;
+    $scope.bar = null;
 
 	this.showGraph = function() {
-		var config = {};			
+		var config = {};
 		config.bindto = "#"+$scope.bindto;
 		config.data = {};
 
@@ -64,6 +65,14 @@ angular.module('gridshore.c3js.chart', [])
 			config.color = {"pattern":$scope.colors};
 		}
 
+        if ($scope.bar != null) {
+            config.bar = $scope.bar;
+        }
+
+        config.point = {
+            r: 4
+        };
+
 		$scope.config = config;
 
 		if ($scope.chartData && $scope.chartColumns) {
@@ -71,7 +80,7 @@ angular.module('gridshore.c3js.chart', [])
 				loadChartData();
 			});
 		} else {
-			$scope.chart = c3.generate($scope.config);				
+			$scope.chart = c3.generate($scope.config);
 		}
 	};
 
@@ -83,7 +92,7 @@ angular.module('gridshore.c3js.chart', [])
 	this.addYAxis = function(yAxis) {
 		$scope.axes = yAxis;
 		if (!$scope.axis.y2) {
-			$scope.axis.y2={"show":true};				
+			$scope.axis.y2={"show":true};
 		}
 	};
 
@@ -156,6 +165,10 @@ angular.module('gridshore.c3js.chart', [])
 		$scope.colors = colors;
 	};
 
+    this.setBarOptions = function(options) {
+        $scope.bar = options;
+    }
+
 	function addColumnProperties(id, columnType, columnName, columnColor) {
 		if (columnType !== undefined) {
 			$scope.types[id]=columnType;
@@ -194,7 +207,9 @@ angular.module('gridshore.c3js.chart', [])
         $scope.config.data.keys=$scope.jsonKeys;
         $scope.config.data.json=$scope.chartData;
 
-        $scope.chart = c3.generate($scope.config);
+        $timeout(function() {
+            $scope.chart = c3.generate($scope.config);
+        });
 
 		// $scope.chart.load(data);
 	}
@@ -400,7 +415,7 @@ angular.module('gridshore.c3js.chart', [])
 		"link": gridLinker
 	};
 })
-.directive('chartAxisXTick', function() {
+.directive('chartAxisXTick', function($parse) {
 	var tickLinker = function(scope,element,attrs,chartCtrl) {
 		var tick = {};
 
@@ -417,7 +432,7 @@ angular.module('gridshore.c3js.chart', [])
 
 		var culling = attrs.tickCulling;
 		if (culling) {
-			tick.culling = culling;
+			tick.culling = $parse(culling)(scope);
 		}
 
 		var rotate = attrs.tickRotate;
@@ -506,7 +521,7 @@ angular.module('gridshore.c3js.chart', [])
 			if (width) {
 				chartSize.width = parseInt(width);
 			}
-			if (height) { 
+			if (height) {
 				chartSize.height = parseInt(height);
 			}
 			chartCtrl.addSize(chartSize);
@@ -537,5 +552,26 @@ angular.module('gridshore.c3js.chart', [])
 		"replace":true,
 		"link": colorsLinker
 	};
+
+})
+.directive('bar', function() {
+    var barLinker = function(scope,element,attrs,chartCtrl) {
+        var widthRatio = attrs.widthRatio;
+        if (widthRatio) {
+            chartCtrl.setBarOptions({
+                width: {
+                    ratio: parseFloat(widthRatio)
+                }
+            });
+        }
+    };
+
+    return {
+        "require":"^c3chart",
+        "restrict":"E",
+        "scope": {},
+        "replace":true,
+        "link": barLinker
+    };
 
 });
