@@ -165,9 +165,13 @@ angular.module('gridshore.c3js.chart', [])
 		$scope.colors = colors;
 	};
 
+    this.addStyles = function(styles) {
+        $scope.styles = styles;
+    };
+
     this.setBarOptions = function(options) {
         $scope.bar = options;
-    }
+    };
 
 	function addColumnProperties(id, columnType, columnName, columnColor) {
 		if (columnType !== undefined) {
@@ -183,15 +187,18 @@ angular.module('gridshore.c3js.chart', [])
 			if ($scope.colors === null) {
 				$scope.colors = {};
 			}
-			$scope.colors[id]=columnColor;
+			$scope.colors[id] = columnColor;
 		}
 	}
 
 	function loadChartData() {
         $scope.jsonKeys = {};
         $scope.jsonKeys.value=[];
-        angular.forEach($scope.chartColumns, function(column) {
+        angular.forEach($scope.chartColumns, function(column, index) {
             $scope.jsonKeys.value.push(column.id);
+            if (angular.isArray($scope.styles)) {
+                column.type = $scope.styles[index];
+            }
             addColumnProperties(column.id ,column.type, column.name, column.color);
         });
         if ($scope.chartX) {
@@ -537,12 +544,17 @@ angular.module('gridshore.c3js.chart', [])
 	};
 
 })
-.directive('chartColors', function() {
+.directive('chartStyle', function() {
 	var colorsLinker = function(scope,element,attrs,chartCtrl) {
 		var pattern = attrs.colorPattern;
 		if (pattern) {
 			chartCtrl.addColors(pattern.split(","));
 		}
+
+        var types = attrs.types;
+        if (types) {
+            chartCtrl.addStyles(types.split(','));
+        }
 	};
 
 	return {
