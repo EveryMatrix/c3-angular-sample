@@ -432,15 +432,24 @@ angular.module('gridshore.c3js.chart', [])
 		}
 
 		// TODO, dit lijkt nog niet echt iets te doen
-		var format = attrs.tickFormat;
-		if (format) {
-			tick.format = format;
-		}
+		//var format = attrs.tickFormat;
+		//if (format) {
+		//	tick.format = format;
+		//}
 
-		var culling = attrs.tickCulling;
-		if (culling) {
-			tick.culling = $parse(culling)(scope);
-		}
+        attrs.$observe('tickFormat', function(newVal) {
+            tick.format = newVal;
+        });
+
+		//var culling = attrs.tickCulling;
+		//if (culling) {
+		//	tick.culling = $parse(culling)(scope);
+		//}
+
+        attrs.$observe('tickCulling', function(newVal) {
+            tick.culling = $parse(newVal)(scope);
+        });
+
 
 		var rotate = attrs.tickRotate;
 		if (rotate) {
